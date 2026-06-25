@@ -120,12 +120,10 @@ if not os.path.exists(MODEL_PATH):
 
 import tensorflow as tf
 
-import tensorflow as tf
-
 model = tf.keras.models.load_model(
-    "model.keras",
+    "model.h5",
     compile=False,
-    custom_objects={}
+    custom_objects={"DepthwiseConv2D": tf.keras.layers.DepthwiseConv2D}
 )
 
 # =========================
