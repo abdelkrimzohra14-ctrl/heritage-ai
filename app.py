@@ -68,8 +68,8 @@ st.markdown(
 # =========================
 # 🏛️ الصور (شعار + قلعة)
 # =========================
-logo_path = r"D:\Maps _GIS_ZohraSeminar\Heritage_AI_Project\University of M'sila.png"
-castle_path = r"D:\Maps _GIS_ZohraSeminar\Heritage_AI_Project\Bani Hammad Castle.png"
+logo_path = "assets/University of M'sila.png"
+castle_path = "assets/Bani Hammad Castle.png"
 
 col1, col2, col3 = st.columns([1, 2, 1])
 
