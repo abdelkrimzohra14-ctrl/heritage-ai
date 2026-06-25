@@ -3,8 +3,7 @@ from PIL import Image
 import os
 import cv2
 import numpy as np
-
-from keras.models import load_model
+import pickle
 from fpdf import FPDF   # ✔ هنا مهم جدًا
 
 def predict_image(image):
@@ -284,8 +283,8 @@ with tab3:
         img = img.astype(np.float32) / 255.0
         img = np.expand_dims(img, axis=0)
 
-        prediction = model.predict(img, verbose=0)
-
+        # prediction = model.predict(img, verbose=0)
+        st.info("AI model disabled for Streamlit Cloud compatibility")
         index = np.argmax(prediction)
         confidence = float(np.max(prediction) * 100)
 
