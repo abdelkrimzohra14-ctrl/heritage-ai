@@ -5,4 +5,5 @@ pillow
 matplotlib
 fpdf2
 gdown
-tensorflow-cpu==2.15.0
+tensorflow==2.16.1
+keras==3.3.3
