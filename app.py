@@ -1,10 +1,10 @@
 import streamlit as st
-from PIL import Image
 import os
 import cv2
 import numpy as np
-import tensorflow as tf
 import gdown
+import tensorflow as tf
+from PIL import Image
 from fpdf import FPDF
 from datetime import datetime
 import matplotlib.pyplot as plt
@@ -39,13 +39,23 @@ MODEL_PATH = os.path.join(BASE_DIR, "model.keras")
 # =========================
 # تحميل النموذج من Google Drive
 # =========================
-file_id = "1XMNsYtZQPkfBaRJeryXyZjzsJcAzh7E8"
+file_id = "19o67ROa0qRkd0DxDAwLBEeQQz9Y2kwBy"
 
 if not os.path.exists(MODEL_PATH):
     url = f"https://drive.google.com/uc?id={file_id}"
     gdown.download(url, MODEL_PATH, quiet=False)
 
-model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+# =========================
+# تحميل النموذج (مع حماية من الخطأ)
+# =========================
+try:
+    model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+    st.success("✅ Model loaded successfully!")
+
+except Exception as e:
+    st.error("❌ Model loading failed")
+    st.code(str(e))
+    st.stop()
 
 # =========================
 # تحميل Dataset إذا غير موجود
@@ -68,7 +78,7 @@ image_files = sorted([
 ])
 
 # =========================
-# العنوان
+# عنوان المشروع
 # =========================
 st.title("🏛️ Digital Heritage Documentation System")
 st.header("📍 Bani Hammad Castle - UNESCO Heritage Site")
@@ -81,7 +91,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
 ])
 
 # =========================
-# TAB 1
+# TAB 1 - Images
 # =========================
 with tab1:
     for i, img_name in enumerate(image_files):
@@ -89,7 +99,7 @@ with tab1:
         st.image(Image.open(img_path), caption=f"Image {i+1}", use_container_width=True)
 
 # =========================
-# TAB 2
+# TAB 2 - Analysis
 # =========================
 with tab2:
     brightness = []
@@ -111,7 +121,7 @@ with tab2:
     st.pyplot(fig)
 
 # =========================
-# TAB 3
+# TAB 3 - AI PREDICTION
 # =========================
 with tab3:
     classes = ["Front View", "Back View", "Left View", "Right View"]
@@ -139,10 +149,11 @@ with tab3:
         st.write(f"Confidence: {confidence:.2f}%")
         st.divider()
 
-    st.write(f"Average Confidence: {np.mean(confidences):.2f}%")
+    if len(confidences) > 0:
+        st.write(f"Average Confidence: {np.mean(confidences):.2f}%")
 
 # =========================
-# TAB 4
+# TAB 4 - REPORT
 # =========================
 with tab4:
     selected = []
@@ -196,7 +207,7 @@ with tab4:
         output = os.path.join(BASE_DIR, "report.pdf")
         pdf.output(output)
 
-        st.success("Report generated!")
+        st.success("Report generated successfully!")
 
         with open(output, "rb") as f:
             st.download_button("Download Report", f, file_name="report.pdf")
