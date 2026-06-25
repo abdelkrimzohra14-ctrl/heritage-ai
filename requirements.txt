@@ -1,8 +1,7 @@
-streamlit==1.31.0
+streamlit
 numpy
 pillow
+opencv-python-headless
 matplotlib
 fpdf2
 gdown
-opencv-python-headless
-tensorflow-cpu==2.15.0
