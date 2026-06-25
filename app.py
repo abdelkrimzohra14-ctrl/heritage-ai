@@ -4,11 +4,11 @@ import os
 import cv2
 import numpy as np
 import tensorflow as tf
+import gdown
 from fpdf import FPDF
 from datetime import datetime
 import matplotlib.pyplot as plt
 import zipfile
-import gdown
 
 # =========================
 # إعداد الصفحة
@@ -37,7 +37,18 @@ DATASET_PATH = os.path.join(BASE_DIR, "Dataset")
 MODEL_PATH = os.path.join(BASE_DIR, "model.h5")
 
 # =========================
-# تحميل Dataset إذا غير موجود
+# تحميل النموذج من Google Drive
+# =========================
+file_id = "1wkiXLv04aJx7meYixVmtiD3DglomUh_E"
+
+if not os.path.exists(MODEL_PATH):
+    url = f"https://drive.google.com/uc?id={file_id}"
+    gdown.download(url, MODEL_PATH, quiet=False)
+
+model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+
+# =========================
+# تحميل Dataset (إذا غير موجود)
 # =========================
 DATASET_ZIP = os.path.join(BASE_DIR, "dataset.zip")
 
@@ -49,18 +60,6 @@ if not os.path.exists(DATASET_PATH):
         zip_ref.extractall(BASE_DIR)
 
 # =========================
-# تحميل النموذج (الحل الصحيح)
-# =========================
-try:
-    model = tf.keras.models.load_model(
-        MODEL_PATH,
-        compile=False
-    )
-except Exception as e:
-    st.error(f"Model loading error: {e}")
-    st.stop()
-
-# =========================
 # قراءة الصور
 # =========================
 image_files = sorted([
@@ -69,12 +68,10 @@ image_files = sorted([
 ])
 
 # =========================
-# عنوان
+# عنوان التطبيق
 # =========================
 st.title("🏛️ Digital Heritage Documentation System")
-
-st.header("📍 Site Information")
-st.markdown("Bani Hammad Castle - UNESCO Heritage Site")
+st.header("📍 Bani Hammad Castle - UNESCO Heritage Site")
 
 # =========================
 # Tabs
@@ -144,7 +141,7 @@ with tab3:
     st.write(f"Average Confidence: {np.mean(confidences):.2f}%")
 
 # =========================
-# TAB 4 - PDF REPORT
+# TAB 4 - REPORT
 # =========================
 with tab4:
     selected_images = []
@@ -163,7 +160,7 @@ with tab4:
     if st.button("Generate Report"):
 
         if len(selected_images) == 0:
-            st.warning("Select at least one image")
+            st.warning("Please select at least one image")
             st.stop()
 
         pdf = FPDF()
