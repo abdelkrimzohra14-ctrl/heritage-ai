@@ -109,11 +109,13 @@ st.markdown(
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATASET_PATH = os.path.join(BASE_DIR, "Dataset")
 MODEL_PATH = os.path.join(BASE_DIR, "model.h5")
-import gdown
-import os
-from tensorflow.keras.models import load_model
+import tensorflow as tf
 
-MODEL_PATH = "model.keras"
+model = tf.keras.models.load_model(
+    "model.keras",
+    compile=False,
+    custom_objects={}
+)
 
 if not os.path.exists(MODEL_PATH):
     model_url = "https://drive.google.com/uc?id=1jA80p388SNnuRiqfnQG7EvO3g0K21_mz"
