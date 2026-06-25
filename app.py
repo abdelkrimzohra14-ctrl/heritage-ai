@@ -109,11 +109,17 @@ st.markdown(
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATASET_PATH = os.path.join(BASE_DIR, "Dataset")
 MODEL_PATH = os.path.join(BASE_DIR, "model.h5")
-import os
 import gdown
-import zipfile
-import streamlit as st
+import os
 from tensorflow.keras.models import load_model
+
+MODEL_PATH = "model.keras"
+
+if not os.path.exists(MODEL_PATH):
+    model_url = "https://drive.google.com/uc?id=1jA80p388SNnuRiqfnQG7EvO3g0K21_mz"
+    gdown.download(model_url, MODEL_PATH, quiet=False)
+
+model = load_model(MODEL_PATH, compile=False)
 
 # =========================
 # Paths
@@ -121,13 +127,6 @@ from tensorflow.keras.models import load_model
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATASET_PATH = os.path.join(BASE_DIR, "Dataset")
 MODEL_PATH = os.path.join(BASE_DIR, "model.h5")
-
-# =========================
-# تحميل النموذج
-# =========================
-if not os.path.exists(MODEL_PATH):
-    model_url = "https://drive.google.com/uc?id=1wkiXLv04aJx7meYixVmtiD3DglomUh_E"
-    gdown.download(model_url, MODEL_PATH, quiet=False)
 
 # =========================
 # تحميل Dataset (ZIP)
