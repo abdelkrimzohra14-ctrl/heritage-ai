@@ -1,8 +1,8 @@
 streamlit
 tensorflow
 numpy
-opencv-python-headless
 Pillow
 matplotlib
 gdown
 fpdf
+opencv-python-headless==4.8.1.78
