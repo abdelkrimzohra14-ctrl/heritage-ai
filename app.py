@@ -26,12 +26,12 @@ def predict_image(image):
     img_array = np.expand_dims(img_array, axis=0)
 
     # التنبؤ
-    prediction = model.predict(img_array, verbose=0)
 
     classes = ["Front", "Back", "Left", "Right"]
 
+    prediction = model.predict(img, verbose=0)
     index = np.argmax(prediction)
-    confidence = np.max(prediction) * 100
+    confidence = float(np.max(prediction) * 100)
 
     return classes[index], confidence
 
@@ -146,7 +146,7 @@ if not os.path.exists(DATASET_PATH):
 # تحميل النموذج
 # ==========================================
 try:
-    model = load_model(MODEL_PATH)
+    model = load_model(MODEL_PATH, compile=False)
 except Exception as e:
     st.error(f"Model Error : {e}")
     st.stop()
@@ -282,8 +282,8 @@ with tab3:
         img = img.astype(np.float32) / 255.0
         img = np.expand_dims(img, axis=0)
 
-        # prediction = model.predict(img, verbose=0)
-        st.info("AI model disabled for Streamlit Cloud compatibility")
+        prediction = model.predict(img, verbose=0)
+
         index = np.argmax(prediction)
         confidence = float(np.max(prediction) * 100)
 
