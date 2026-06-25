@@ -119,7 +119,7 @@ if not os.path.exists(MODEL_PATH):
     model_url = "https://drive.google.com/uc?id=1jA80p388SNnuRiqfnQG7EvO3g0K21_mz"
     gdown.download(model_url, MODEL_PATH, quiet=False)
 
-model = load_model(MODEL_PATH, compile=False)
+model = load_model("model.keras", compile=False)
 
 # =========================
 # Paths
