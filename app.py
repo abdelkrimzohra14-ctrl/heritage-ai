@@ -34,12 +34,12 @@ h2, h3 { color: #2c5d7a; }
 # =========================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATASET_PATH = os.path.join(BASE_DIR, "Dataset")
-MODEL_PATH = os.path.join(BASE_DIR, "model.h5")
+MODEL_PATH = os.path.join(BASE_DIR, "model.keras")
 
 # =========================
 # تحميل النموذج من Google Drive
 # =========================
-file_id = "1wkiXLv04aJx7meYixVmtiD3DglomUh_E"
+file_id = "1XMNsYtZQPkfBaRJeryXyZjzsJcAzh7E8"
 
 if not os.path.exists(MODEL_PATH):
     url = f"https://drive.google.com/uc?id={file_id}"
@@ -48,7 +48,7 @@ if not os.path.exists(MODEL_PATH):
 model = tf.keras.models.load_model(MODEL_PATH, compile=False)
 
 # =========================
-# تحميل Dataset (إذا غير موجود)
+# تحميل Dataset إذا غير موجود
 # =========================
 DATASET_ZIP = os.path.join(BASE_DIR, "dataset.zip")
 
@@ -68,7 +68,7 @@ image_files = sorted([
 ])
 
 # =========================
-# عنوان التطبيق
+# العنوان
 # =========================
 st.title("🏛️ Digital Heritage Documentation System")
 st.header("📍 Bani Hammad Castle - UNESCO Heritage Site")
@@ -81,7 +81,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
 ])
 
 # =========================
-# TAB 1 - Images
+# TAB 1
 # =========================
 with tab1:
     for i, img_name in enumerate(image_files):
@@ -89,10 +89,10 @@ with tab1:
         st.image(Image.open(img_path), caption=f"Image {i+1}", use_container_width=True)
 
 # =========================
-# TAB 2 - Analysis
+# TAB 2
 # =========================
 with tab2:
-    brightness_list = []
+    brightness = []
 
     for img_name in image_files:
         img = cv2.imread(os.path.join(DATASET_PATH, img_name))
@@ -100,18 +100,18 @@ with tab2:
             continue
 
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        brightness_list.append(np.mean(gray))
+        brightness.append(np.mean(gray))
 
-    st.write(f"Total Images: {len(brightness_list)}")
-    st.write(f"Average Brightness: {np.mean(brightness_list):.2f}")
+    st.write(f"Total Images: {len(brightness)}")
+    st.write(f"Average Brightness: {np.mean(brightness):.2f}")
 
     fig, ax = plt.subplots()
-    ax.plot(brightness_list, marker='o')
+    ax.plot(brightness, marker='o')
     ax.set_title("Brightness Analysis")
     st.pyplot(fig)
 
 # =========================
-# TAB 3 - AI Prediction
+# TAB 3
 # =========================
 with tab3:
     classes = ["Front View", "Back View", "Left View", "Right View"]
@@ -131,6 +131,7 @@ with tab3:
 
         index = np.argmax(prediction)
         confidence = float(np.max(prediction) * 100)
+
         confidences.append(confidence)
 
         st.success(f"Image {i+1} ➜ {classes[index]}")
@@ -141,10 +142,10 @@ with tab3:
     st.write(f"Average Confidence: {np.mean(confidences):.2f}%")
 
 # =========================
-# TAB 4 - REPORT
+# TAB 4
 # =========================
 with tab4:
-    selected_images = []
+    selected = []
 
     for i, img_name in enumerate(image_files):
 
@@ -155,12 +156,12 @@ with tab4:
 
         with col2:
             if st.checkbox(f"Select {i+1}", key=img_name):
-                selected_images.append(img_name)
+                selected.append(img_name)
 
     if st.button("Generate Report"):
 
-        if len(selected_images) == 0:
-            st.warning("Please select at least one image")
+        if len(selected) == 0:
+            st.warning("Please select images")
             st.stop()
 
         pdf = FPDF()
@@ -174,7 +175,7 @@ with tab4:
 
         pdf.ln(10)
 
-        for i, img_name in enumerate(selected_images, 1):
+        for i, img_name in enumerate(selected, 1):
 
             path = os.path.join(DATASET_PATH, img_name)
             img = cv2.imread(path)
@@ -192,14 +193,10 @@ with tab4:
 
             pdf.ln(5)
 
-        output_path = os.path.join(BASE_DIR, "report.pdf")
-        pdf.output(output_path)
+        output = os.path.join(BASE_DIR, "report.pdf")
+        pdf.output(output)
 
-        st.success("Report generated successfully!")
+        st.success("Report generated!")
 
-        with open(output_path, "rb") as f:
-            st.download_button(
-                "Download Report",
-                f,
-                file_name="heritage_report.pdf"
-            )
+        with open(output, "rb") as f:
+            st.download_button("Download Report", f, file_name="report.pdf")
