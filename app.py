@@ -1,64 +1,138 @@
 import streamlit as st
+from PIL import Image
 import os
 import cv2
 import numpy as np
-import gdown
-import tensorflow as tf
-from PIL import Image
-from fpdf import FPDF
-from datetime import datetime
-import matplotlib.pyplot as plt
-import zipfile
 
-# =========================
+from tensorflow.keras.models import load_model
+from fpdf import FPDF   # ✔ هنا مهم جدًا
+
+def predict_image(image):
+    import numpy as np
+
+    # تغيير الحجم حسب نموذجك (غالبًا 224x224)
+    image = image.resize((224, 224))
+
+    # تحويل الصورة إلى array
+    img_array = np.array(image)
+
+    # التأكد من 3 قنوات (RGB)
+    if img_array.shape[-1] == 4:
+        img_array = img_array[:, :, :3]
+
+    # تطبيع
+    img_array = img_array.astype("float32") / 255.0
+
+    # إضافة batch dimension
+    img_array = np.expand_dims(img_array, axis=0)
+
+    # التنبؤ
+    prediction = model.predict(img_array, verbose=0)
+
+    classes = ["Front", "Back", "Left", "Right"]
+
+    index = np.argmax(prediction)
+    confidence = np.max(prediction) * 100
+
+    return classes[index], confidence
+
+# ==========================================
 # إعداد الصفحة
-# =========================
+# ==========================================
 st.set_page_config(
     page_title="Digital Heritage Documentation",
     layout="wide"
 )
+import os
+
 
 # =========================
-# تصميم بسيط
+# 🎨 تصميم الواجهة
 # =========================
-st.markdown("""
-<style>
-.main { background-color: #f7f3ee; }
-h1 { color: #6b3e26; }
-h2, h3 { color: #2c5d7a; }
-</style>
-""", unsafe_allow_html=True)
+st.markdown(
+    """
+    <style>
+    .main {
+        background-color: #f7f3ee;
+    }
+    h1 {
+        color: #6b3e26;
+    }
+    h2, h3 {
+        color: #2c5d7a;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # =========================
+# 🏛️ الصور (شعار + قلعة)
+# =========================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+logo_path = os.path.join(BASE_DIR, "logo.png")
+castle_path = os.path.join(BASE_DIR, "castle.png")
+
+col1, col2, col3 = st.columns([1, 2, 1])
+
+with col1:
+    st.image(logo_path, width=120)
+
+with col2:
+    st.image(castle_path, use_container_width=True)
+
+with col3:
+    st.write("")
+
+# =========================
+# 🏛️ العنوان
+# =========================
+st.markdown(
+    """
+    <h1 style='text-align:center; color:#6b3e26;'>
+    🏛️ Digital Heritage Documentation System
+    </h1>
+    """,
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    """
+    <h4 style='text-align:center; color:#2c5d7a;'>
+    AI-based Architectural Heritage Analysis
+    </h4>
+    """,
+    unsafe_allow_html=True
+)
+
+# ==========================================
 # المسارات
+# ==========================================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATASET_PATH = os.path.join(BASE_DIR, "Dataset")
+MODEL_PATH = os.path.join(BASE_DIR, "model.h5")
+import os
+import gdown
+import zipfile
+import streamlit as st
+from tensorflow.keras.models import load_model
+
+# =========================
+# Paths
 # =========================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATASET_PATH = os.path.join(BASE_DIR, "Dataset")
-MODEL_PATH = os.path.join(BASE_DIR, "model.keras")
+MODEL_PATH = os.path.join(BASE_DIR, "model.h5")
 
 # =========================
-# تحميل النموذج من Google Drive
+# تحميل النموذج
 # =========================
-file_id = "19o67ROa0qRkd0DxDAwLBEeQQz9Y2kwBy"
-
 if not os.path.exists(MODEL_PATH):
-    url = f"https://drive.google.com/uc?id={file_id}"
-    gdown.download(url, MODEL_PATH, quiet=False)
+    model_url = "https://drive.google.com/uc?id=1wkiXLv04aJx7meYixVmtiD3DglomUh_E"
+    gdown.download(model_url, MODEL_PATH, quiet=False)
 
 # =========================
-# تحميل النموذج (مع حماية من الخطأ)
-# =========================
-try:
-    model = tf.keras.models.load_model(MODEL_PATH, compile=False)
-    st.success("✅ Model loaded successfully!")
-
-except Exception as e:
-    st.error("❌ Model loading failed")
-    st.code(str(e))
-    st.stop()
-
-# =========================
-# تحميل Dataset إذا غير موجود
+# تحميل Dataset (ZIP)
 # =========================
 DATASET_ZIP = os.path.join(BASE_DIR, "dataset.zip")
 
@@ -69,67 +143,141 @@ if not os.path.exists(DATASET_PATH):
     with zipfile.ZipFile(DATASET_ZIP, 'r') as zip_ref:
         zip_ref.extractall(BASE_DIR)
 
-# =========================
+
+
+# ==========================================
+# تحميل النموذج
+# ==========================================
+try:
+    model = load_model(MODEL_PATH)
+except Exception as e:
+    st.error(f"Model Error : {e}")
+    st.stop()
+
+# ==========================================
+# التأكد من وجود مجلد الصور
+# ==========================================
+if not os.path.exists(DATASET_PATH):
+    st.error("Dataset folder not found.")
+    st.stop()
+
+# ==========================================
 # قراءة الصور
-# =========================
+# ==========================================
 image_files = sorted([
     f for f in os.listdir(DATASET_PATH)
     if f.lower().endswith((".jpg", ".jpeg", ".png"))
 ])
 
-# =========================
-# عنوان المشروع
-# =========================
-st.title("🏛️ Digital Heritage Documentation System")
-st.header("📍 Bani Hammad Castle - UNESCO Heritage Site")
+# ==========================================
+# العنوان
+# ==========================================
 
-# =========================
-# Tabs
-# =========================
+
+st.header("📍 Site Information")
+st.markdown("قلعة بني حماد - التراث العالمي")
+
+# ==========================================
+# معلومات الموقع
+# ==========================================
+st.header("📍 معلومات الموقع | Site Information")
+
+st.markdown("""
+### AR العربية
+
+**الاسم:** قلعة بني حماد
+
+**الموقع:** ولاية المسيلة – الجزائر
+
+**تاريخ الإنشاء:** 1007م
+
+**التصنيف:** التراث العالمي لليونسكو (1980)
+
+تقع قلعة بني حماد شمال شرق ولاية المسيلة،
+وكانت العاصمة الأولى للدولة الحمادية.
+
+---
+
+### ENG English
+
+**Name:** Bani Hammad Castle
+
+**Location:** M'Sila, Algeria
+
+**Construction:** 1007 AD
+
+**UNESCO:** World Heritage Site (1980)
+
+It was the first capital of the Hammadid dynasty.
+""")
+
+# ==========================================
+# معرض الصور
+# ==========================================
+st.header("AI-Based Documentation of Beni Hammad Heritage")
+
 tab1, tab2, tab3, tab4 = st.tabs([
-    "Images", "Analysis", "AI Results", "Report"
+    "🖼️ Images",
+    "📊 Analysis",
+    "🤖 AI Results",
+    "📄 Report"
 ])
 
-# =========================
-# TAB 1 - Images
-# =========================
 with tab1:
-    for i, img_name in enumerate(image_files):
-        img_path = os.path.join(DATASET_PATH, img_name)
-        st.image(Image.open(img_path), caption=f"Image {i+1}", use_container_width=True)
 
-# =========================
-# TAB 2 - Analysis
-# =========================
+    for i, image_name in enumerate(image_files):
+
+        image_path = os.path.join(DATASET_PATH, image_name)
+        image = Image.open(image_path)
+
+        st.image(image, caption=f"Image {i+1}", use_container_width=True)
+
+# ==========================================================
+# Analysis
+# ==========================================================
 with tab2:
-    brightness = []
 
-    for img_name in image_files:
-        img = cv2.imread(os.path.join(DATASET_PATH, img_name))
+    brightness_list = []
+    contrast_list = []
+
+    for image_name in image_files:
+
+        img = cv2.imread(os.path.join(DATASET_PATH, image_name))
         if img is None:
             continue
 
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        brightness.append(np.mean(gray))
 
-    st.write(f"Total Images: {len(brightness)}")
-    st.write(f"Average Brightness: {np.mean(brightness):.2f}")
+        brightness_list.append(np.mean(gray))
+        contrast_list.append(np.std(gray))
+
+    st.write(f"Total Images: {len(brightness_list)}")
+    st.write(f"Average Brightness: {np.mean(brightness_list):.2f}")
+
+    import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots()
-    ax.plot(brightness, marker='o')
-    ax.set_title("Brightness Analysis")
+    ax.plot(brightness_list, marker='o')
+
+    ax.set_title("Heritage Image Brightness Analysis")
+    ax.set_xlabel("Image Index")
+    ax.set_ylabel("Brightness")
+
+    fig.savefig("chart.png")
     st.pyplot(fig)
 
-# =========================
-# TAB 3 - AI PREDICTION
-# =========================
+# ==========================================================
+# AI Prediction
+# ==========================================================
 with tab3:
+
     classes = ["Front View", "Back View", "Left View", "Right View"]
+
     confidences = []
 
-    for i, img_name in enumerate(image_files):
+    for i, image_name in enumerate(image_files):
 
-        img = cv2.imread(os.path.join(DATASET_PATH, img_name))
+        img = cv2.imread(os.path.join(DATASET_PATH, image_name))
         if img is None:
             continue
 
@@ -146,52 +294,115 @@ with tab3:
 
         st.success(f"Image {i+1} ➜ {classes[index]}")
         st.progress(int(confidence))
-        st.write(f"Confidence: {confidence:.2f}%")
+        st.write(f"📊 Confidence: {confidence:.2f}%")
         st.divider()
 
-    if len(confidences) > 0:
-        st.write(f"Average Confidence: {np.mean(confidences):.2f}%")
+    st.subheader("📊 AI Summary")
+    st.write(f"Average Confidence: {np.mean(confidences):.2f}%")
 
-# =========================
-# TAB 4 - REPORT
-# =========================
 with tab4:
-    selected = []
+    st.subheader("📸 Select Images for Report (Maximum 10)")
 
-    for i, img_name in enumerate(image_files):
+    selected_images = []
+
+    for i, image_name in enumerate(image_files):
+
+        image_path = os.path.join(DATASET_PATH, image_name)
 
         col1, col2 = st.columns([4, 1])
 
         with col1:
-            st.image(os.path.join(DATASET_PATH, img_name), width=250)
+            st.image(
+            image_path,
+            caption=f"Image {i+1}",
+            width=250
+        )
 
         with col2:
-            if st.checkbox(f"Select {i+1}", key=img_name):
-                selected.append(img_name)
+           if st.checkbox(
+            f"Select {i+1}",
+            key=image_name
+        ):
+            selected_images.append(image_name)
 
-    if st.button("Generate Report"):
+    st.write(f"Selected Images: {len(selected_images)}/10")
+    st.subheader("📄 Generate Heritage Report")
 
-        if len(selected) == 0:
-            st.warning("Please select images")
+    st.write(
+        f"Selected Images: {len(selected_images)} / 10"
+    )
+
+    if st.button("📄 Generate Report"):
+
+        if len(selected_images) == 0:
+            st.warning("Please select at least one image.")
             st.stop()
+
+        if len(selected_images) > 10:
+            st.error("Maximum 10 images allowed.")
+            st.stop()
+
+        from fpdf import FPDF
+        from datetime import datetime
 
         pdf = FPDF()
         pdf.add_page()
 
-        pdf.set_font("Arial", "B", 16)
-        pdf.cell(0, 10, "Bani Hammad Castle Report", ln=True, align="C")
+        # =====================
+        # Title
+        # =====================
+
+        pdf.set_font("Arial", "B", 18)
+        pdf.cell(
+            0,
+            10,
+            "Bani Hammad Castle",
+            ln=True,
+            align="C"
+        )
 
         pdf.set_font("Arial", "", 12)
-        pdf.cell(0, 10, f"Date: {datetime.now().strftime('%Y-%m-%d')}", ln=True)
+        pdf.cell(
+            0,
+            10,
+            "AI-Based Heritage Documentation",
+            ln=True,
+            align="C"
+        )
+
+        pdf.cell(
+            0,
+            10,
+            f"Date: {datetime.now().strftime('%Y-%m-%d')}",
+            ln=True,
+            align="C"
+        )
 
         pdf.ln(10)
 
-        for i, img_name in enumerate(selected, 1):
+        # =====================
+        # Selected Images
+        # =====================
+
+        for i, img_name in enumerate(selected_images, start=1):
 
             path = os.path.join(DATASET_PATH, img_name)
+
             img = cv2.imread(path)
 
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            if img is None:
+                continue
+
+            if len(img.shape) == 2:
+                gray = img
+            else:
+                gray = cv2.cvtColor(
+                    img,
+                    cv2.COLOR_BGR2GRAY
+                )
+
+            brightness = float(np.mean(gray))
+            contrast = float(np.std(gray))
 
             pdf.set_font("Arial", "B", 12)
             pdf.cell(0, 10, f"Image {i}", ln=True)
@@ -199,15 +410,38 @@ with tab4:
             pdf.image(path, w=70)
 
             pdf.set_font("Arial", "", 11)
-            pdf.cell(0, 8, f"Brightness: {np.mean(gray):.2f}", ln=True)
-            pdf.cell(0, 8, f"Contrast: {np.std(gray):.2f}", ln=True)
+            pdf.cell(
+                0,
+                8,
+                f"Brightness: {brightness:.2f}",
+                ln=True
+            )
+
+            pdf.cell(
+                0,
+                8,
+                f"Contrast: {contrast:.2f}",
+                ln=True
+            )
 
             pdf.ln(5)
 
-        output = os.path.join(BASE_DIR, "report.pdf")
-        pdf.output(output)
+        pdf_path = os.path.join(
+            BASE_DIR,
+            "BH_Heritage_Report.pdf"
+        )
 
-        st.success("Report generated successfully!")
+        pdf.output(pdf_path)
 
-        with open(output, "rb") as f:
-            st.download_button("Download Report", f, file_name="report.pdf")
+        st.success(
+            "📄 Report generated successfully ✔"
+        )
+
+        with open(pdf_path, "rb") as file:
+
+            st.download_button(
+                "📥 Download Report",
+                data=file,
+                file_name="BH_Heritage_Report.pdf",
+                mime="application/pdf"
+            )
