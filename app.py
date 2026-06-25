@@ -123,7 +123,7 @@ import tensorflow as tf
 model = tf.keras.models.load_model(
     "model.h5",
     compile=False,
-    custom_objects={"DepthwiseConv2D": tf.keras.layers.DepthwiseConv2D}
+    safe_mode=False
 )
 
 # =========================
