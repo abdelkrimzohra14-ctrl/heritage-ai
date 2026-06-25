@@ -121,7 +121,13 @@ if not os.path.exists(MODEL_PATH):
 
 import tensorflow as tf
 
-model = tf.keras.models.load_model("model.keras", compile=False)
+import tensorflow as tf
+
+model = tf.keras.models.load_model(
+    "model.keras",
+    compile=False,
+    custom_objects={}
+)
 
 # =========================
 # Paths
