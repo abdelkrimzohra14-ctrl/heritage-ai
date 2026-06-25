@@ -1,8 +1,8 @@
 streamlit
+tensorflow
 numpy
-opencv-python-headless
-pillow
+opencv-python
+Pillow
 matplotlib
-fpdf2
 gdown
-tensorflow==2.21.0
+fpdf
