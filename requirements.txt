@@ -5,4 +5,4 @@ pillow
 matplotlib
 fpdf2
 gdown
-keras
+tensorflow==2.15.0
