@@ -68,8 +68,8 @@ st.markdown(
 # =========================
 # 🏛️ الصور (شعار + قلعة)
 # =========================
-logo_path = "assets/university_msila.png"
-castle_path = "assets/bani_hammad_castle.png"
+logo_path = "assets/University of M'sila.png"
+castle_path = "assets/Bani Hammad Castle.png"
 
 col1, col2, col3 = st.columns([1, 2, 1])
 
